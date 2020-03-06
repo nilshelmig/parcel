@@ -32,6 +32,7 @@ import packagerJs from '@parcel/packager-js';
 import packagerRaw from '@parcel/packager-raw';
 import reporterJson from '@parcel/reporter-json';
 import resolverDefault from '@parcel/resolver-default';
+import runtimeJs from '@parcel/runtime-js';
 import transformerJS from '@parcel/transformer-js';
 import transformerRaw from '@parcel/transformer-raw';
 
@@ -43,6 +44,7 @@ const BUILTINS = {
   '@parcel/packager-raw': packagerRaw,
   '@parcel/reporter-json': reporterJson,
   '@parcel/resolver-default': resolverDefault,
+  '@parcel/runtime-js': runtimeJs,
   '@parcel/transformer-js': transformerJS,
   '@parcel/transformer-raw': transformerRaw,
 };
@@ -89,12 +91,18 @@ export class NodePackageManager implements PackageManager {
   }
 
   load(resolved: FilePath, from: FilePath): any {
-    if (resolved in BUILTINS) return BUILTINS[resolved];
+    if (resolved in BUILTINS) {
+      return BUILTINS[resolved];
+    }
 
     if (!path.isAbsolute(resolved)) {
       // Node builtin module
-      // $FlowFixMe
-      return require(resolved);
+      if (process.browser) {
+        throw new Error(`Cannot require '${resolved}' in the browser`);
+      } else {
+        // $FlowFixMe
+        return require(resolved);
+      }
     }
 
     let filePath = this.fs.realpathSync(resolved);
