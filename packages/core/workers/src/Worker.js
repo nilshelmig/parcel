@@ -45,7 +45,7 @@ export default class Worker extends EventEmitter {
 
   async fork(forkModule: FilePath) {
     let filteredArgs = [];
-    if (!process.browser) {
+    if (process.execArgv) {
       filteredArgs = process.execArgv.filter(
         v => !/^--(debug|inspect)/.test(v),
       );

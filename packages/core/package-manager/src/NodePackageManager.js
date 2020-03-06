@@ -96,10 +96,11 @@ export class NodePackageManager implements PackageManager {
     }
 
     if (!path.isAbsolute(resolved)) {
-      // Node builtin module
+      // $FlowFixMe
       if (process.browser) {
         throw new Error(`Cannot require '${resolved}' in the browser`);
       } else {
+        // Node builtin module
         // $FlowFixMe
         return require(resolved);
       }
