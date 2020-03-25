@@ -1,9 +1,10 @@
 {
   "bundler": "@parcel/bundler-default",
   "transformers": {
-    "types:*.{ts,tsx}": ["@parcel/transformer-typescript-types"],
     "bundle-text:*": ["@parcel/transformer-inline-string", "..."],
     "data-url:*": ["@parcel/transformer-inline-string", "..."],
+    "types:*.{ts,tsx}": ["@parcel/transformer-typescript-types"],
+    "webmanifest:*": ["@parcel/transformer-webmanifest"],
     "*.{js,mjs,jsm,jsx,es6,ts,tsx}": [
       "@parcel/transformer-react-refresh-babel",
       "@parcel/transformer-babel",
@@ -50,6 +51,7 @@
     "*.css": "@parcel/packager-css",
     "*.js": "@parcel/packager-js",
     "*.ts": "@parcel/packager-ts",
+    "*.webmanifest": "@parcel/packager-string",
     "*": "@parcel/packager-raw"
   },
   "resolvers": ["@parcel/resolver-default"],

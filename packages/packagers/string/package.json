@@ -1,5 +1,5 @@
 {
-  "name": "@parcel/packager-ts",
+  "name": "@parcel/packager-string",
   "version": "2.0.0-alpha.3.1",
   "license": "MIT",
   "publishConfig": {
@@ -9,13 +9,14 @@
     "type": "git",
     "url": "https://github.com/parcel-bundler/parcel.git"
   },
-  "main": "lib/TSPackager.js",
-  "source": "src/TSPackager.js",
+  "main": "lib/StringPackager.js",
+  "source": "src/StringPackager.js",
   "engines": {
     "node": ">= 10.0.0",
-    "parcel": "^2.0.0-alpha.1.1"
+    "parcel": "^2.0.0-alpha.3.1"
   },
   "dependencies": {
-    "@parcel/plugin": "^2.0.0-alpha.3.1"
+    "@parcel/plugin": "^2.0.0-alpha.3.1",
+    "@parcel/utils": "^2.0.0-alpha.3.1"
   }
 }

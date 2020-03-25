@@ -82,7 +82,6 @@ function processPipeline(
   filePath: FilePath,
 ): any {
   if (pipeline) {
-    // $FlowFixMe
     return pipeline.map(pkg => {
       if (pkg === '...') return pkg;
 
@@ -199,11 +198,8 @@ export function validateConfigFile(
 
   validateSchema.diagnostic(
     ParcelConfigSchema,
-    config,
-    relativePath,
-    JSON.stringify(config, null, '\t'),
+    {data: config, filePath: relativePath},
     '@parcel/core',
-    '',
     'Invalid Parcel Config',
   );
 }
