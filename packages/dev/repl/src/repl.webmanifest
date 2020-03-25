@@ -8,7 +8,7 @@
   "background_color": "white",
   "theme_color": "#21374b",
   "icons": [{
-    "src": "avatar.png",
+    "src": "./assets/avatar.png",
     "sizes": "512x512",
     "type": "image/png"
   }]

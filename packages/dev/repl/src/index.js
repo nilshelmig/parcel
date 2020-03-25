@@ -109,7 +109,6 @@ function App() {
 
       setBundlingState(BUNDLING_FINISHED);
       setOutput(bundleOutput);
-      console.log(bundleOutput);
       if (bundleOutput.type === 'failure' && bundleOutput.diagnostics) {
         for (let [asset, assetDiagnostics] of bundleOutput.diagnostics) {
           setAssets(assetsReducer.addDiagnostics(asset, assetDiagnostics));
