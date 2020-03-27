@@ -2,6 +2,7 @@
 import type {Bundle, BundleGraph} from '@parcel/types';
 
 import assert from 'assert';
+import invariant from 'assert';
 import {Packager} from '@parcel/plugin';
 import posthtml from 'posthtml';
 import {replaceURLReferences, urlJoin} from '@parcel/utils';
@@ -35,9 +36,15 @@ export default new Packager({
     // may import CSS files. This will result in a sibling bundle in the same bundle group as the
     // JS. This will be inserted as a <link> element into the HTML here.
     let bundleGroups = bundleGraph
-      .getExternalDependencies(bundle)
-      .map(dependency => bundleGraph.resolveExternalDependency(dependency))
-      .filter(Boolean);
+      .getDependenciesInBundle(bundle)
+      .map(dependency =>
+        bundleGraph.resolveExternalDependency(bundle, dependency),
+      )
+      .filter(resolved => resolved != null && resolved.type === 'bundle_group')
+      .map(resolved => {
+        invariant(resolved != null && resolved.type === 'bundle_group');
+        return resolved.value;
+      });
     let bundles = bundleGroups.reduce((p, bundleGroup) => {
       let bundles = bundleGraph
         .getBundlesInBundleGroup(bundleGroup)

@@ -3,6 +3,7 @@
 import type SourceMap from '@parcel/source-map';
 import type {Async, Blob, Bundle, BundleGraph, Dependency} from '@parcel/types';
 
+import invariant from 'assert';
 import {Readable} from 'stream';
 import nullthrows from 'nullthrows';
 import URL from 'url';
@@ -34,14 +35,17 @@ export function replaceURLReferences({
   map?: ?SourceMap,
 |}): {|+contents: string, +map: ?SourceMap|} {
   let replacements = new Map();
+  let urlDependencies = bundleGraph
+    .getDependenciesInBundle(bundle)
+    .filter(dep => dep.isURL);
 
-  for (let dependency of bundleGraph.getExternalDependencies(bundle)) {
+  for (let dependency of urlDependencies) {
     if (!dependency.isURL) {
       continue;
     }
 
-    let bundleGroup = bundleGraph.resolveExternalDependency(dependency);
-    if (bundleGroup == null) {
+    let resolved = bundleGraph.resolveExternalDependency(bundle, dependency);
+    if (resolved == null) {
       replacements.set(dependency.id, {
         from: dependency.id,
         to: dependency.moduleSpecifier,
@@ -49,7 +53,8 @@ export function replaceURLReferences({
       continue;
     }
 
-    let [entryBundle] = bundleGraph.getBundlesInBundleGroup(bundleGroup);
+    invariant(resolved.type === 'bundle_group');
+    let [entryBundle] = bundleGraph.getBundlesInBundleGroup(resolved.value);
     if (entryBundle.isInline) {
       // If a bundle is inline, it should be replaced with inline contents,
       // not a URL.
@@ -95,13 +100,13 @@ export async function replaceInlineReferences({
 |}): Promise<{|+contents: string, +map: ?SourceMap|}> {
   let replacements = new Map();
 
-  for (let dependency of bundleGraph.getExternalDependencies(bundle)) {
-    let bundleGroup = bundleGraph.resolveExternalDependency(dependency);
-    if (bundleGroup == null) {
+  for (let dependency of bundleGraph.getDependenciesInBundle(bundle)) {
+    let resolved = bundleGraph.resolveExternalDependency(bundle, dependency);
+    if (resolved == null || resolved.type === 'asset') {
       continue;
     }
 
-    let [entryBundle] = bundleGraph.getBundlesInBundleGroup(bundleGroup);
+    let [entryBundle] = bundleGraph.getBundlesInBundleGroup(resolved.value);
     if (!entryBundle.isInline) {
       continue;
     }

@@ -1,6 +1,12 @@
 // @flow strict-local
 
-import type {Asset, Bundle, MutableBundleGraph} from '@parcel/types';
+import type {
+  Asset,
+  Dependency,
+  Bundle,
+  BundleGroup,
+  MutableBundleGraph,
+} from '@parcel/types';
 
 import invariant from 'assert';
 import {Bundler} from '@parcel/plugin';
@@ -25,6 +31,10 @@ export default new Bundler({
   bundle({bundleGraph}) {
     let bundleRoots: Map<Bundle, Array<Asset>> = new Map();
     let siblingBundlesByAsset: Map<string, Array<Bundle>> = new Map();
+    let asyncDependencies: Map<
+      Dependency,
+      {|bundleGroup: BundleGroup, resolution: Asset|},
+    > = new Map();
 
     // Step 1: create bundles for each of the explicit code split points.
     bundleGraph.traverse({
@@ -53,6 +63,14 @@ export default new Bundler({
             dependency,
             nullthrows(dependency.target ?? context?.bundleGroup?.target),
           );
+          if (dependency.isAsync) {
+            asyncDependencies.set(dependency, {
+              bundleGroup,
+              resolution,
+            });
+            bundleGraph.createAssetReference(dependency, resolution);
+          }
+
           let bundleByType: Map<string, Bundle> = new Map();
 
           for (let asset of assets) {
@@ -149,6 +167,31 @@ export default new Bundler({
     for (let [bundle, rootAssets] of bundleRoots) {
       for (let asset of rootAssets) {
         bundleGraph.addAssetGraphToBundle(asset, bundle);
+      }
+    }
+
+    for (let [dependency, {bundleGroup, resolution}] of asyncDependencies) {
+      if (dependency.isEntry) {
+        continue;
+      }
+
+      let required = false;
+      for (let bundle of bundleGraph.findBundlesWithDependency(dependency)) {
+        if (
+          bundle.hasAsset(resolution) ||
+          bundleGraph.isAssetInAncestorBundles(bundle, resolution)
+        ) {
+          bundleGraph.internalizeAsyncDependency(bundle, dependency);
+        } else {
+          required = true;
+        }
+      }
+
+      if (!required) {
+        // If every bundle including an async dependency includes the asset it
+        // resolves to, it's safe to remove the bundle group created by this
+        // dependency.
+        bundleGraph.removeBundleGroup(bundleGroup);
       }
     }
   },

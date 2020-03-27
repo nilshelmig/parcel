@@ -620,6 +620,7 @@ export interface MutableBundleGraph {
   createBundle(CreateBundleOpts): Bundle;
   createBundleGroup(Dependency, Target): BundleGroup;
   findBundlesWithAsset(Asset): Array<Bundle>;
+  findBundlesWithDependency(Dependency): Array<Bundle>;
   getDependencyAssets(Dependency): Array<Asset>;
   getDependencyResolution(Dependency): ?Asset;
   getBundleGroupsContainingBundle(Bundle): Array<BundleGroup>;
@@ -627,6 +628,8 @@ export interface MutableBundleGraph {
   getTotalSize(Asset): number;
   isAssetInAncestorBundles(Bundle, Asset): boolean;
   removeAssetGraphFromBundle(Asset, Bundle): void;
+  removeBundleGroup(bundleGroup: BundleGroup): void;
+  internalizeAsyncDependency(bundle: Bundle, dependency: Dependency): void;
   traverse<TContext>(
     GraphVisitor<BundlerBundleGraphTraversable, TContext>,
   ): ?TContext;
@@ -645,6 +648,14 @@ export interface BundleGraph {
   getSiblingBundles(bundle: Bundle): Array<Bundle>;
   getDependencies(asset: Asset): Array<Dependency>;
   getIncomingDependencies(asset: Asset): Array<Dependency>;
+  getDependenciesInBundle(bundle: Bundle): Array<Dependency>;
+  resolveExternalDependency(
+    bundle: Bundle,
+    dependency: Dependency,
+  ): ?(
+    | {|type: 'bundle_group', value: BundleGroup|}
+    | {|type: 'asset', value: Asset|}
+  );
   getDependencyResolution(dependency: Dependency, bundle: Bundle): ?Asset;
   isAssetInAncestorBundles(bundle: Bundle, asset: Asset): boolean;
   isAssetReferenced(asset: Asset): boolean;
@@ -657,8 +668,6 @@ export interface BundleGraph {
     startBundle?: Bundle,
   ): ?TContext;
   findBundlesWithAsset(Asset): Array<Bundle>;
-  getExternalDependencies(bundle: Bundle): Array<Dependency>;
-  resolveExternalDependency(dependency: Dependency): ?BundleGroup;
 }
 
 export type BundleResult = {|

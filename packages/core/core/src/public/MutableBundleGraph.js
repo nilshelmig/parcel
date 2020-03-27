@@ -113,6 +113,20 @@ export default class MutableBundleGraph implements IMutableBundleGraph {
     return bundleGroup;
   }
 
+  removeBundleGroup(bundleGroup: BundleGroup): void {
+    for (let bundle of this.getBundlesInBundleGroup(bundleGroup)) {
+      this.#graph._graph.removeById(bundle.id);
+    }
+    this.#graph._graph.removeById(getBundleGroupId(bundleGroup));
+  }
+
+  internalizeAsyncDependency(bundle: IBundle, dependency: IDependency): void {
+    this.#graph.internalizeAsyncDependency(
+      bundleToInternalBundle(bundle),
+      dependencyToInternalDependency(dependency),
+    );
+  }
+
   createBundle(opts: CreateBundleOpts): Bundle {
     let entryAsset = opts.entryAsset
       ? assetToAssetValue(opts.entryAsset)
@@ -214,6 +228,12 @@ export default class MutableBundleGraph implements IMutableBundleGraph {
   findBundlesWithAsset(asset: IAsset): Array<IBundle> {
     return this.#graph
       .findBundlesWithAsset(assetToAssetValue(asset))
+      .map(bundle => new Bundle(bundle, this.#graph, this.#options));
+  }
+
+  findBundlesWithDependency(dependency: IDependency): Array<IBundle> {
+    return this.#graph
+      .findBundlesWithDependency(dependencyToInternalDependency(dependency))
       .map(bundle => new Bundle(bundle, this.#graph, this.#options));
   }
 
